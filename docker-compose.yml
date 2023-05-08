@@ -1,0 +1,39 @@
+version: "3.9"
+services:
+  timescaledb: 
+    image: timescale/timescaledb:latest-pg15
+    environment:
+      - POSTGRES_PASSWORD=password
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: psql postgresql://postgres:password@localhost:5432 -c 'select 1'
+      interval: 5s
+      timeout: 30s
+      retries: 5
+      start_period: 5s
+
+  load-data: 
+    build: 
+      dockerfile: ./load-data/Dockerfile
+    depends_on:
+      timescaledb: 
+        condition: service_healthy
+
+  benchmark-queries:
+    build:
+      dockerfile: ./benchmark-queries/Dockerfile
+    depends_on:
+      load-data:
+        condition: service_completed_successfully
+      timescaledb:
+        condition: service_healthy
+
+  benchmark-queries-test:
+    build:
+      dockerfile: ./benchmark-queries/Dockerfile-test
+    depends_on:
+      load-data:
+        condition: service_completed_successfully
+      timescaledb:
+        condition: service_healthy

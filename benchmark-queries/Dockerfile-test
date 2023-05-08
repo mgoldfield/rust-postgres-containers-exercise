@@ -1,0 +1,6 @@
+FROM rust:1.69 as builder
+WORKDIR /builder/
+COPY ./benchmark-queries/ .
+
+# in the future could cache dependencies here for faster testing 
+CMD cargo test
