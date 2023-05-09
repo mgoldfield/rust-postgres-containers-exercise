@@ -9,4 +9,5 @@ edition = "2021"
 chrono = "0.4.24"
 devtimer = "4.0.1"
 postgres = { version = "0.19.5", features = ["with-chrono-0_4"] }
+statistical = "1.0.0"
 threadpool = "1.8.1"
