@@ -6,17 +6,16 @@ CREATE DATABASE homework;
 \c homework
 
 CREATE TABLE IF NOT EXISTS cpu_usage(
-  ts    TIMESTAMPTZ,
-  host  TEXT,
-  usage DOUBLE PRECISION
+  ts    TIMESTAMP NOT NULL,
+  host  TEXT NOT NULL,
+  usage DOUBLE PRECISION NOT NULL
 );
 
--- this index should give constant time lookups for min and max usage with host and truncated ts predicates
-CREATE INDEX ON cpu_usage USING (host, date_trunc('minute', ts), usage);
+CREATE INDEX truncatedts_idx on cpu_usage (date_trunc('minute', ts));
 SELECT create_hypertable('cpu_usage', 'ts', if_not_exists => true);
 
 CREATE TABLE IF NOT EXISTS cpu_stats_queries(
-  hostname TEXT,
-  start_time TIMESTAMPTZ,
-  end_time TIMESTAMPTZ
+  hostname TEXT NOT NULL,
+  start_time TIMESTAMP NOT NULL,
+  end_time TIMESTAMP NOT NULL
 );
