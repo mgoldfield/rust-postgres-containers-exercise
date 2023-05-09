@@ -39,6 +39,7 @@ name = "benchmark-queries"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "devtimer",
  "postgres",
  "threadpool",
 ]
@@ -181,6 +182,12 @@ dependencies = [
  "quote",
  "syn 2.0.15",
 ]
+
+[[package]]
+name = "devtimer"
+version = "4.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "907339959a92f6b98846570500c0a567c9aecbb3871cef00561eb5d20d47b7c1"
 
 [[package]]
 name = "digest"
