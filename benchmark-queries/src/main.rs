@@ -54,13 +54,12 @@ fn get_stats_for_cpu(cpu: String, sender: Sender<CpuQueryBenchmark>) {
         let mut timer = DevTime::new_simple();
         timer.start();
         let cpu_stats_wrapped = client.query(
-            "select max(usage) as max, min(usage) as min, minute
-                from (
-                    select date_trunc('minute', ts) as minute, usage
-                    from cpu_usage 
-                    where host = $1
-                        and ts >= $2 and ts < $3) as stats_for_host
-                group by minute",
+            "select max(usage) as max, min(usage) as min, date_trunc('minute', ts) as minute
+            from cpu_usage
+            where host = $1
+                and ts >= $2
+                and ts < $3
+            group by date_trunc('minute', ts);",
             &[&cq.host, &cq.start_time, &cq.end_time],
         );
         timer.stop();
@@ -111,7 +110,7 @@ fn compute_stats(receiver: Receiver<CpuQueryBenchmark>) {
         {}
         mean: {}, median: {}, standard deviation: {}",
         query_data[0],
-        query_data.last().unwrap(),
+        query_data.last().expect("no data recieved from threads"),
         mean,
         median,
         std_dev
@@ -139,7 +138,7 @@ impl fmt::Display for CpuQueryBenchmark {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "query time: {}, host: {}, start_time: {}, end_time: {}",
+            "query time: {}ms, host: {}, start_time: {}, end_time: {}",
             self.execute_time, self.cq.host, self.cq.start_time, self.cq.end_time
         )
     }

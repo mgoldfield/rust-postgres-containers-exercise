@@ -20,7 +20,7 @@ Making `cpu_usage` a hypertable as we configured it automatically makes an index
 Using this example query:
 
 ```sql
-explain analyze
+explain
 select max(usage) as max, min(usage) as min, date_trunc('minute', ts) as minute
 from cpu_usage
 where host = 'host_000003'
@@ -43,4 +43,9 @@ With no additional index:
                Rows Removed by Filter: 6840
 ```
 
-adding an index on `date_trunc('minute', ts))`, `host`, or `usage`, we get no change in the query plan. I am a bit surprised by this , but it seems to use the raw ts index is used well, and the size of the data leftover is not significant enough to merit usage of additional structures. I also experimented with various compound indexes, and nothing I tried changed the query plan beyond the above.
+My two main thoughts to optimize were:
+
+- speed up the GroupAggregate by precomputing the truncated date
+- moving the filter on host to be using an index of some kind
+
+Adding an index using `date_trunc('minute', ts))` or `host`, or other compound indexes using `ts` or truncated `ts` we get no change in the query plan. I am a bit surprised by this, but it seems to use the raw ts index is used well, and the size of the data leftover is not significant enough to merit usage of additional structures. Nothing I tried changed the query plan beyond the above or significantly affected benchmarks. In a scenario with different scale, compound indexes may play more of an effect here.
