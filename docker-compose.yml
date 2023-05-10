@@ -7,7 +7,7 @@ services:
     ports:
       - 5432:5432
     healthcheck:
-      test: psql postgresql://postgres:password@localhost:5432 -c 'select 1'
+      test: psql -U postgres -c 'select 1'
       interval: 5s
       timeout: 30s
       retries: 5
