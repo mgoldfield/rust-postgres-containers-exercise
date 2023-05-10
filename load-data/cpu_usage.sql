@@ -11,7 +11,6 @@ CREATE TABLE IF NOT EXISTS cpu_usage(
   usage DOUBLE PRECISION NOT NULL
 );
 
-CREATE INDEX truncatedts_idx on cpu_usage (date_trunc('minute', ts));
 SELECT create_hypertable('cpu_usage', 'ts', if_not_exists => true);
 
 CREATE TABLE IF NOT EXISTS cpu_stats_queries(
