@@ -29,10 +29,8 @@ fn main() {
         let cpu = String::from(cpu_row.get::<usize, &str>(0));
         pool.execute(move || get_stats_for_cpu(cpu, sender));
     }
-    println!("awaiting threads");
     pool.join();
-    println!("joined");
-
+    drop(sender);
     compute_stats(reciever);
 }
 
@@ -87,23 +85,21 @@ fn get_stats_for_cpu(cpu: String, sender: Sender<CpuQueryBenchmark>) {
 }
 
 fn compute_stats(receiver: Receiver<CpuQueryBenchmark>) {
-    println!("computing stats...");
     let mut query_data: Vec<CpuQueryBenchmark> = receiver.iter().collect();
+
     let query_times: Vec<f64> = query_data
         .clone()
         .into_iter()
         .map(|c| c.execute_time as f64)
         .collect();
 
-    // query_data.sort_by(|a, b| {
-    //     if a.execute_time >= b.execute_time {
-    //         Ordering::Greater
-    //     } else {
-    //         Ordering::Less
-    //     }
-    // });
-
-    println!("query data sorted");
+    query_data.sort_by(|a, b| {
+        if a.execute_time >= b.execute_time {
+            Ordering::Greater
+        } else {
+            Ordering::Less
+        }
+    });
 
     let mean = statistical::mean(&query_times);
     let median = statistical::median(&query_times);
@@ -111,9 +107,11 @@ fn compute_stats(receiver: Receiver<CpuQueryBenchmark>) {
 
     println!(
         "min and max queries:
+        {}
+        {}
         mean: {}, median: {}, standard deviation: {}",
-        // query_data[0],
-        // query_data.last().unwrap(),
+        query_data[0],
+        query_data.last().unwrap(),
         mean,
         median,
         std_dev
