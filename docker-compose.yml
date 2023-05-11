@@ -21,20 +21,20 @@ services:
       timescaledb: 
         condition: service_healthy
 
-  benchmark-queries:
-    build:
-      dockerfile: ./benchmark-queries/Dockerfile
-    depends_on:
-      load-data:
-        condition: service_completed_successfully
-      timescaledb:
-        condition: service_healthy
+  # benchmark-queries:
+  #   build:
+  #     dockerfile: ./benchmark-queries/Dockerfile
+  #   depends_on:
+  #     load-data:
+  #       condition: service_completed_successfully
+  #     timescaledb:
+  #       condition: service_healthy
 
-  benchmark-queries-test:
-    build:
-      dockerfile: ./benchmark-queries/Dockerfile-test
-    depends_on:
-      load-data:
-        condition: service_completed_successfully
-      timescaledb:
-        condition: service_healthy
+  # benchmark-queries-test:
+  #   build:
+  #     dockerfile: ./benchmark-queries/Dockerfile-test
+  #   depends_on:
+  #     load-data:
+  #       condition: service_completed_successfully
+  #     timescaledb:
+  #       condition: service_healthy

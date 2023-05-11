@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS cpu_usage(
   usage DOUBLE PRECISION NOT NULL
 );
 
+CREATE INDEX ts_host_idx on cpu_usage (ts, host);
 SELECT create_hypertable('cpu_usage', 'ts', if_not_exists => true);
 
 CREATE TABLE IF NOT EXISTS cpu_stats_queries(
