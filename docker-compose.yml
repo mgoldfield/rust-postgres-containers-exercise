@@ -4,6 +4,7 @@ services:
     image: timescale/timescaledb:latest-pg15
     environment:
       - POSTGRES_PASSWORD=password
+      - TS_TUNE_MAX_CONNS=20
     ports:
       - 5432:5432
     healthcheck:
