@@ -1,5 +1,3 @@
-# TODO figure out absolute paths?  
-
 FROM rust:1.69 as builder
 WORKDIR /builder/
 COPY ./benchmark-queries/ .

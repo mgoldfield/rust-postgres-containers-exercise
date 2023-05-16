@@ -1,5 +1,4 @@
-# TODO: sanitize data
-# TODO: only run these commands if the infrastructure isnt present currently 
+set -e 
 
 # echo "creating database infrastructure ...";
 psql postgresql://postgres:password@timescaledb:5432 < cpu_usage.sql; 

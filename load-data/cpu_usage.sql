@@ -1,6 +1,7 @@
 -- dropping and recreating the database makes a clean install every time.  
 -- if this was meant to update a persistent system, we would want to 
 -- track migrations with a robust system and not rebuild everything each run.
+
 DROP DATABASE IF EXISTS homework; 
 CREATE DATABASE homework;
 \c homework
