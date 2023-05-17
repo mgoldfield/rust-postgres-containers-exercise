@@ -1,4 +1,4 @@
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::NaiveDateTime;
 use devtimer::DevTime;
 use postgres::{Client, NoTls};
 use std::cmp::Ordering;
@@ -6,11 +6,8 @@ use std::fmt;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use threadpool::ThreadPool;
 
-// TODO - handle unwraps
-
-// in a production project, these values might get split out and put into config(s)
+// in a production project, the following values might get split out and put into config(s)
 static POSTGRES_URL: &'static str = "postgresql://postgres:password@timescaledb:5432/homework";
-
 // this can be tuned depending on the system.  max_connections on the database should be >= NUM_THREADS
 static NUM_THREADS: usize = 4;
 
@@ -19,7 +16,7 @@ fn main() {
 
     let cpus_to_measure = client
         .query("select distinct hostname from cpu_stats_queries", &[])
-        .unwrap();
+        .expect("query for hosts to measure failed");
 
     let pool = ThreadPool::new(NUM_THREADS);
     let (sender, reciever) = channel::<CpuQueryBenchmark>();
@@ -42,7 +39,7 @@ fn get_stats_for_cpu(cpu: String, sender: Sender<CpuQueryBenchmark>) {
                 from cpu_stats_queries where hostname = $1",
             &[&cpu],
         )
-        .unwrap();
+        .expect(format!("query for periods for host {} failed", cpu).as_str());
 
     for ranges in cpu_queries {
         let cq = CpuQuery {
@@ -64,7 +61,7 @@ fn get_stats_for_cpu(cpu: String, sender: Sender<CpuQueryBenchmark>) {
         );
         timer.stop();
 
-        let cpu_stats = cpu_stats_wrapped.unwrap();
+        let cpu_stats = cpu_stats_wrapped.expect(format!("query for {} failed", cq).as_str());
 
         println!(
             "host: {}, max: {}, min: {}, minute: {}",
@@ -76,10 +73,10 @@ fn get_stats_for_cpu(cpu: String, sender: Sender<CpuQueryBenchmark>) {
 
         sender
             .send(CpuQueryBenchmark {
-                execute_time: timer.time_in_millis().unwrap(),
+                execute_time: timer.time_in_millis().expect("timer failed"),
                 cq,
             })
-            .unwrap();
+            .expect("sending stats to main thread failed");
     }
 }
 
@@ -105,20 +102,21 @@ fn compute_stats(receiver: Receiver<CpuQueryBenchmark>) {
     let std_dev = statistical::standard_deviation(&query_times, Some(mean));
 
     println!(
-        "min and max queries:
-        {}
-        {}
-        mean: {}, median: {}, standard deviation: {}",
-        query_data[0],
-        query_data.last().expect("no data recieved from threads"),
+        "
+        mean: {}, median: {}, standard deviation: {}
+        min and max queries:
+            {}
+            {}",
         mean,
         median,
-        std_dev
+        std_dev,
+        query_data[0],
+        query_data.last().expect("no data recieved from threads")
     );
 }
 
 fn ts_client() -> Client {
-    return Client::connect(POSTGRES_URL, NoTls).unwrap();
+    return Client::connect(POSTGRES_URL, NoTls).expect("connection to database failed");
 }
 
 #[derive(Clone)]
@@ -134,19 +132,27 @@ struct CpuQueryBenchmark {
     execute_time: u128,
 }
 
-impl fmt::Display for CpuQueryBenchmark {
+impl fmt::Display for CpuQuery {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "query time: {}ms, host: {}, start_time: {}, end_time: {}",
-            self.execute_time, self.cq.host, self.cq.start_time, self.cq.end_time
+            "host: {}, start_time: {}, end_time: {}",
+            self.host, self.start_time, self.end_time
         )
+    }
+}
+
+impl fmt::Display for CpuQueryBenchmark {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "query time: {}ms {}", self.execute_time, self.cq)
     }
 }
 
 #[cfg(test)]
 mod test {
     use crate::ts_client;
+
+    // with more time I would like to have fleshed this section out more, but leaving it this way in the interest of time
 
     #[test]
     fn timescale_is_up_and_data_loaded() {
