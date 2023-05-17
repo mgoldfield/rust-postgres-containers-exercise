@@ -2,15 +2,22 @@ to build: `docker compose build`
 
 to run: `docker compose run benchmark-queries`
 
-to test: `docker compose run --build benchmark-queries-test`
+to test: `docker compose run benchmark-queries-test`
+
+Both `benchmark-queries` and `benchmark-queries-test` can be run with the `--build` flag as well.
 
 ## Design Considerations
 
 ### Data
 
 Since there aren't timestamps on the data, I made the decision to move to the `TIMESTAMP` type from the `TIMESTAMPTZ` type.
-I'm making the assumption that these have been all converted to the same timezone, UTC.  
-With production data, we'd need to make sure that we handle timezones correctly.
+With production data, we'd need to make sure our assumption of a timestamp without a timezone was correct.
+
+I decided to load the `query_params` data into the database because I think that allows for the easiest usage and manipulation of the data. It also paves the way for extending functionality for different scenarios, like queuing new `query_params` requests.
+
+### Robustness
+
+Currently, data is loaded in the `load-data` container. If the data is not formatted correctly, this container will exit with a failure code and run will stop. Because I am trying to keep things simple, I am not adding much around fault tolerance and recoverability. I'd like to note that in a production setting we could produce and archive wal logs, and have things like hot standby replicas for fault tolerance.
 
 ### Indexes
 
@@ -60,4 +67,4 @@ Adding an index on `(ts, host)` yeilds a more streamlined query plan for the lon
                Index Cond: ((ts >= '2017-01-02 07:42:00'::timestamp without time zone) AND (ts < '2017-01-02 08:42:00'::timestamp without time zone) AND (host = 'host_000009'::text))
 ```
 
-Adding an index using `date_trunc('minute', ts)` does not result in a change to the query plans for queries I investigated. I think heavier load scenarios could benefit from more index investigation.
+Adding an index using `date_trunc('minute', ts)` does not result in a change to the query plans or benchmarks for queries I investigated. I think heavier load scenarios could benefit from more index investigation.
