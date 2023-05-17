@@ -8,6 +8,8 @@ Both `benchmark-queries` and `benchmark-queries-test` can be run with the `--bui
 
 ## Design Considerations
 
+I know there are a lot of avenues to approach designing, optimizing, and making this program more robust. I took a look at a few of these here, and tried to document what I could around other potential work.
+
 ### Data
 
 Since there aren't timestamps on the data, I made the decision to move to the `TIMESTAMP` type from the `TIMESTAMPTZ` type.
