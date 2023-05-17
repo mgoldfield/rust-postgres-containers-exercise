@@ -19,9 +19,13 @@ I decided to load the `query_params` data into the database because I think that
 
 ### Robustness
 
-Currently, data is loaded in the `load-data` container. If the data is not formatted correctly, this container will exit with a failure code and run will stop. Because I am trying to keep things simple, I am not adding much around fault tolerance and recoverability. I'd like to note that in a production setting we could produce and archive wal logs, and have things like hot standby replicas for fault tolerance.
+Currently, data is loaded in the `load-data` container. If the data is not formatted correctly, this container will exit with a failure code and run will stop. Because I am trying to keep things simple, I am not adding much around fault tolerance and recoverability. I'd like to note that in a production setting we could archive wal logs, and have more redundancy such as hot standby replicas.
 
-### Indexes
+### Efficiency
+
+It would likely be more efficient to batch queries, for simply reducing round trips, but also potentially to query for data only once for `query_params` requests that overlap.
+
+#### Indexes
 
 Adding indexes in varying complexity to the `cpu_usage` table allow us to lookup data faster.
 Making `cpu_usage` a hypertable as we configured it automatically makes an index on `ts`.
